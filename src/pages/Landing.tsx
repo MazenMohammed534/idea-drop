@@ -111,9 +111,7 @@ export default function Landing() {
         </Link>
       </section>
 
-      <footer className="section-divider px-4 py-8 text-center font-body text-sm md:px-8">
-        IdeaDrop © 2025 
-      </footer>
+      
     </div>
   )
 }
