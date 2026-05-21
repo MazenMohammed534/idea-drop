@@ -131,7 +131,18 @@ export default function Board() {
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-      <Navbar />
+      <div
+        className="sticky top-0 z-50"
+        style={{ background: 'var(--bg)' }}
+      >
+        <Navbar sticky={false} />
+        <FilterBar
+          activeCategory={activeCategory}
+          sortBy={sortBy}
+          onCategoryChange={setActiveCategory}
+          onSortChange={setSortBy}
+        />
+      </div>
 
       <header className="px-4 py-10 md:px-8">
         <div className="flex flex-wrap items-center gap-4">
@@ -145,13 +156,6 @@ export default function Board() {
           )}
         </div>
       </header>
-
-      <FilterBar
-        activeCategory={activeCategory}
-        sortBy={sortBy}
-        onCategoryChange={setActiveCategory}
-        onSortChange={setSortBy}
-      />
 
       <main className="px-4 py-8 md:px-8">
         {error && (

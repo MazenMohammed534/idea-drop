@@ -27,7 +27,7 @@ export default function FilterBar({
 
   return (
     <div
-      className="sticky top-[73px] z-40 px-4 py-3 md:px-8"
+      className="px-4 py-3 md:px-8"
       style={{
         background: 'var(--bg)',
         borderBottom: '2px solid var(--black)',

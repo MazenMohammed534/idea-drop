@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom'
 
-export default function Navbar() {
+interface NavbarProps {
+  /** When false, parent wrapper should handle sticky positioning (e.g. Board page). */
+  sticky?: boolean
+}
+
+export default function Navbar({ sticky = true }: NavbarProps) {
   return (
     <nav
-      className="sticky top-0 z-50 flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:px-8"
+      className={`flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:px-8 ${
+        sticky ? 'sticky top-0 z-50' : ''
+      }`}
       style={{ background: 'var(--bg)', borderBottom: '3px solid var(--black)' }}
     >
       <Link to="/" className="flex min-w-0 shrink items-center gap-1.5 sm:gap-2">
