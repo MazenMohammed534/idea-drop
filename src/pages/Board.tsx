@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import FilterBar from '../components/FilterBar'
 import ProblemCard from '../components/ProblemCard'
@@ -28,20 +29,28 @@ function SkeletonCard() {
 
 export default function Board() {
   const [problems, setProblems] = useState<Problem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [activeCategory, setActiveCategory] = useState<Category | 'All'>('All')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null)
+  const hasLoadedOnce = useRef(false)
+  const [animateCards, setAnimateCards] = useState(true)
 
   const fetchProblems = useCallback(async () => {
-    setLoading(true)
+    if (hasLoadedOnce.current) {
+      setIsRefreshing(true)
+    } else {
+      setInitialLoading(true)
+    }
     setError('')
 
     if (!isSupabaseConfigured) {
       setProblems([])
       setError('Add your Supabase credentials to .env to load problems.')
-      setLoading(false)
+      setInitialLoading(false)
+      setIsRefreshing(false)
       return
     }
 
@@ -71,9 +80,18 @@ export default function Board() {
     } catch {
       setError('Could not load problems. Please try again.')
     } finally {
-      setLoading(false)
+      hasLoadedOnce.current = true
+      setInitialLoading(false)
+      setIsRefreshing(false)
     }
   }, [activeCategory, sortBy])
+
+  useEffect(() => {
+    if (!initialLoading && problems.length > 0 && animateCards) {
+      const timer = setTimeout(() => setAnimateCards(false), 350)
+      return () => clearTimeout(timer)
+    }
+  }, [initialLoading, problems.length, animateCards])
 
   useEffect(() => {
     fetchProblems()
@@ -149,7 +167,7 @@ export default function Board() {
           <h1 className="font-head font-extrabold" style={{ fontSize: '48px' }}>
             Problems people face
           </h1>
-          {!loading && (
+          {!initialLoading && (
             <span className="tag-badge text-sm">
               {totalCount} {totalCount === 1 ? 'problem' : 'problems'}
             </span>
@@ -164,13 +182,13 @@ export default function Board() {
           </p>
         )}
 
-        {loading ? (
+        {initialLoading ? (
           <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
-        ) : problems.length === 0 ? (
+        ) : problems.length === 0 && !isRefreshing ? (
           <div className="mx-auto max-w-md py-20 text-center">
             <pre className="font-mono mb-6 text-2xl leading-none text-brand-black/40">
               {`:(
@@ -184,16 +202,36 @@ export default function Board() {
             </Link>
           </div>
         ) : (
-          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
-            {problems.map((problem, index) => (
-              <ProblemCard
-                key={problem.id}
-                problem={problem}
-                index={index}
-                onSelect={setSelectedProblem}
-                onUpvote={handleUpvote}
-              />
-            ))}
+          <div className="relative mx-auto max-w-5xl">
+            {isRefreshing && (
+              <div
+                className="pointer-events-none absolute inset-0 z-10 flex justify-center pt-8"
+                aria-live="polite"
+                aria-busy="true"
+              >
+                <Loader2
+                  size={28}
+                  className="animate-spin"
+                  style={{ color: 'var(--pink)' }}
+                />
+              </div>
+            )}
+            <div
+              className={`grid gap-6 transition-opacity duration-150 md:grid-cols-2 ${
+                isRefreshing ? 'pointer-events-none opacity-50' : 'opacity-100'
+              }`}
+            >
+              {problems.map((problem, index) => (
+                <ProblemCard
+                  key={problem.id}
+                  problem={problem}
+                  index={index}
+                  animateEntry={animateCards && !isRefreshing}
+                  onSelect={setSelectedProblem}
+                  onUpvote={handleUpvote}
+                />
+              ))}
+            </div>
           </div>
         )}
       </main>

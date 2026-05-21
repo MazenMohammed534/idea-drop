@@ -9,6 +9,8 @@ import { formatDisplayName, formatTimeAgo } from '../lib/utils'
 interface ProblemCardProps {
   problem: Problem
   index?: number
+  /** Staggered entrance animation — only on first board load */
+  animateEntry?: boolean
   onSelect?: (problem: Problem) => void
   onUpvote?: (id: string, count: number) => void
 }
@@ -16,9 +18,16 @@ interface ProblemCardProps {
 export default function ProblemCard({
   problem,
   index = 0,
+  animateEntry = false,
   onSelect,
   onUpvote,
 }: ProblemCardProps) {
+  const entryStyle = animateEntry
+    ? {
+        animation: 'slideUp 0.2s ease forwards',
+        animationDelay: `${Math.min(index, 4) * 0.02}s`,
+      }
+    : undefined
   return (
     <div className="flex flex-col gap-2">
       {problem.open_to_collab && (
@@ -37,11 +46,8 @@ export default function ProblemCard({
             onSelect?.(problem)
           }
         }}
-        className="neo-card flex cursor-pointer flex-col p-5 opacity-0"
-        style={{
-          animation: 'slideUp 0.4s ease forwards',
-          animationDelay: `${index * 0.08}s`,
-        }}
+        className={`neo-card flex cursor-pointer flex-col p-5 ${animateEntry ? 'opacity-0' : ''}`}
+        style={entryStyle}
       >
         <CategoryBadge
           category={problem.category}
